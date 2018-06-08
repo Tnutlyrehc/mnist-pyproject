@@ -17,6 +17,7 @@ def cnn_model_fn(featires, labels, mode)
 
     #The images are 28x28px, colorchannel 1
     input_layer = tf.reshape(features["x"], [-1, 28, 28, 1])
+    #input_layer = tf.reshape(features["X"], [-1, 18, 18, 1]) <- For my lazy computer
 
     #Convolutional layer 1
     #5x5 filter w. ReLu activation.
@@ -34,6 +35,49 @@ def cnn_model_fn(featires, labels, mode)
     conv2 = tf.layers.conv2d(inputs=pool1, filters=64, kernel_size=[5, 5], padding="same", activation=tf.nn.relu)
 
     #poollayer 2
-    pool12
+    pool12 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2,2], strides=2)
+
+    #Gotta make those layers dense. More dense than a LoL Silver 5 player.
+    dense = tf.layers.dense(inputs=pool12_flat, units=1024, activation=tf.nn.relu)
+
+    #droupout op. -> 0,6 prob. on keeping an element.
+    dropout = tf.layers.dropout(inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+
+    #input tensor - batchsize 1024, output tensor - batchsize 10
+    logits = tf.layers.dense(inputs=dropout, units=10)
+
+    #Softmax -> graph.
+    prediction = {"classes": tf.argmax(inputs=logits, axis=1).
+                  "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+                  }
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
+
+    #Loss calculation - train + eval mode
+    loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
+
+    #Training - TRAIN mode
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
+        train_op = optimizer.minimize(
+            loss=loss,
+            global_step= tf.train.get_global_step())
+        return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
