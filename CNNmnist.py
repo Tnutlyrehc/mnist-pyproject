@@ -64,6 +64,14 @@ def cnn_model_fn(featires, labels, mode)
             global_step= tf.train.get_global_step())
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
+    #Eval mode
+    eval_metric_ops = {
+        "accuracy": tf.metrics.accuracy(labels=labels, predictions=prediction["classes"])}
+    return  tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+
+    def main(unused_argv):
+        mnist = tf.contrib.learn.datasets.laod_dataset("mnist")
+        train_data = mnist.train.images
 
 
 
