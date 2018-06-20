@@ -5,11 +5,20 @@ from __future__ import print_function
 #Extra import - Tensorflow Framework + numpy packet
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib.gan.python import features
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-if __name__ == "__main__":
-    tf.app.run()
+NUM_CLASSES = 10
+
+# The MNIST images are always 28x28 pixels.
+IMAGE_SIZE = 28
+IMAGE_PIXELS = IMAGE_SIZE * IMAGE_SIZE
+
+
+
+#if __name__ == "__main__":
+#    tf.app.run()
 
 #Layers are defined and shaped -> going for a 4D tensor, 'cause a 3D isn't enough. Ever.
 
@@ -47,7 +56,7 @@ def cnn_model_fn(featires, labels, mode):
     logits = tf.layers.dense(inputs=dropout, units=10)
 
     #Softmax -> graph.
-    prediction = {"classes": tf.argmax(inputs=logits, axis=1),
+    predictions = {"classes": tf.argmax(inputs=logits, axis=1),
                   "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
                   }
     if mode == tf.estimator.ModeKeys.PREDICT:
@@ -66,17 +75,20 @@ def cnn_model_fn(featires, labels, mode):
 
     #Eval mode
     eval_metric_ops = {
-        "accuracy": tf.metrics.accuracy(labels=labels, predictions=prediction["classes"])}
-    return  tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+        "accuracy": tf.metrics.accuracy(
+            labels=labels, predictions=predictions["classes"])}
+    return  tf.estimator.EstimatorSpec(
+        mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
-    def main(unused_argv):
-        mnist = tf.contrib.learn.datasets.laod_dataset("mnist")
-        train_data = mnist.train.images
-        train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
-        eval_data = mnist.test.images  # Returns np.array
-        eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
+def main(unused_argv):
+    # Load training and eval data
+    mnist = tf.contrib.learn.datasets.load_dataset("mnist")
+    train_data = mnist.train.images  # Returns np.array
+    train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
+    eval_data = mnist.test.images  # Returns np.array
+    eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
 
-        # Create the Estimator
+    # Create the Estimator
 
     mnist_classifier = tf.estimator.Estimator(
         model_fn=cnn_model_fn, model_dir="/tmp/mnist_convnet_model")
@@ -112,7 +124,8 @@ def cnn_model_fn(featires, labels, mode):
 
 
 
-
+if __name__ == "__main__":
+    tf.app.run()
 
 
 
