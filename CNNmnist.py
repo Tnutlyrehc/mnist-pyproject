@@ -56,9 +56,10 @@ def cnn_model_fn(featires, labels, mode):
     logits = tf.layers.dense(inputs=dropout, units=10)
 
     #Softmax -> graph.
-    predictions = {"classes": tf.argmax(inputs=logits, axis=1),
-                  "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
-                  }
+    predictions = {
+        "classes": tf.argmax(inputs=logits, axis=1),
+        "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+    }
     if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
